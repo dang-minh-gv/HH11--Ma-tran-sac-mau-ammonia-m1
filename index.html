@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Ma Trận Sắc Màu Hóa Học 11</title>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #f1f5f9;
+        }
+        @media print {
+            body { 
+                background: white !important; 
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            .no-print { display: none !important; }
+            .print-container { 
+                display: flex !important;
+                flex-direction: row !important;
+                align-items: flex-start !important;
+            }
+            .print-col {
+                break-inside: avoid;
+            }
+        }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        .option-disabled { opacity: 0.6; pointer-events: none; }
+    </style>
+</head>
+<body class="p-2 md:p-6">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        // Bộ 5 câu hỏi chuẩn CT 2018 (đã duyệt)
+        const questions = [
+            {
+                id: 1,
+                text: "Tiến hành thí nghiệm đài phun nước với khí ammonia (NH₃) và vài giọt dung dịch phenolphtalein. Hiện tượng nước phun mạnh vào bình và chuyển sang màu hồng chứng tỏ điều gì?",
+                options: [
+                    { label: "W", text: "NH₃ tan ít, dung dịch có tính acid." },
+                    { label: "R", text: "NH₃ tan rất nhiều, dung dịch có tính base.", isCorrect: true },
+                    { label: "Z", text: "NH₃ tan nhiều, dung dịch có tính trung tính." },
+                    { label: "M", text: "NH₃ không tan trong nước." }
+                ],
+                targetLetter: "R",
+                colorClass: "bg-yellow-400"
+            },
+            {
+                id: 2,
+                text: "Đặc điểm về cấu tạo của phân tử ammonia (NH₃) là:",
+                options: [
+                    { label: "J", text: "Phân tử có hình tam giác đều." },
+                    { label: "A", text: "Phân tử có hình chóp tam giác.", isCorrect: true },
+                    { label: "S", text: "Phân tử có hình chữ V." },
+                    { label: "F", text: "Phân tử có hình tứ diện đều." }
+                ],
+                targetLetter: "A",
+                colorClass: "bg-red-600"
+            },
+            {
+                id: 3,
+                text: "Tính chất hóa học cơ bản, đặc trưng nhất của phân tử ammonia (NH₃) là:",
+                options: [
+                    { label: "V", text: "Tính acid mạnh và tính oxi hóa." },
+                    { label: "W", text: "Tính acid yếu và tính khử." },
+                    { label: "G", text: "Tính base mạnh và tính oxi hóa." },
+                    { label: "N", text: "Tính base yếu và tính khử.", isCorrect: true }
+                ],
+                targetLetter: "N",
+                colorClass: "bg-green-700"
+            },
+            {
+                id: 4,
+                text: "Trong công nghiệp, phần lớn lượng ammonia (NH₃) sản xuất ra được ứng dụng chủ yếu để làm gì?",
+                options: [
+                    { label: "Y", text: "Sản xuất phân đạm (phân bón hóa học).", isCorrect: true },
+                    { label: "V", text: "Sản xuất bột giặt, chất tẩy rửa tổng hợp." },
+                    { label: "D", text: "Chế tạo vật liệu mài mòn, gốm sứ." },
+                    { label: "M", text: "Làm chất khí nạp vào bình cứu hỏa." }
+                ],
+                targetLetter: "Y",
+                colorClass: "bg-orange-500"
+            },
+            {
+                id: 5,
+                text: "Phản ứng hóa học nào sau đây chứng minh ammonia (NH₃) có tính khử?",
+                options: [
+                    { label: "X", text: "NH₃ + HCl → NH₄Cl" },
+                    { label: "W", text: "NH₃ + H₂O ⇌ NH₄⁺ + OH⁻" },
+                    { label: "L", text: "FeCl₃ + 3NH₃ + 3H₂O → Fe(OH)₃↓ + 3NH₄Cl" },
+                    { label: "B", text: "2NH₃ + 3CuO (t°) → 3Cu + N₂ + 3H₂O.", isCorrect: true }
+                ],
+                targetLetter: "B",
+                colorClass: "bg-cyan-500"
+            }
+        ];
+
+        // Sơ đồ lưới 17x20 (20-10 ở trên, 3 trái tim ở dưới)
+        const PATTERN = [
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            [0,1,1,1,0,1,1,1,0,0,0,0,0,1,0,0,1,1,1,0], // 2 0 - 1 0
+            [0,0,0,1,0,1,0,1,0,0,0,0,1,1,0,0,1,0,1,0],
+            [0,1,1,1,0,1,0,1,0,1,1,0,0,1,0,0,1,0,1,0],
+            [0,1,0,0,0,1,0,1,0,0,0,0,0,1,0,0,1,0,1,0],
+            [0,1,1,1,0,1,1,1,0,0,0,0,1,1,1,0,1,1,1,0],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            [0,0,1,0,1,0,0,0,0,1,0,1,0,0,0,0,1,0,1,0], // Trái tim 1, 2, 3 (phần lõm trên)
+            [0,1,1,1,1,1,0,0,1,1,1,1,1,0,0,1,1,1,1,1], // Trái tim 1, 2, 3 (phần thân giữa)
+            [0,0,1,1,1,0,0,0,0,1,1,1,0,0,0,0,1,1,1,0], // Trái tim 1, 2, 3 (phần thon dưới)
+            [0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0,0,1,0,0], // Trái tim 1, 2, 3 (phần chóp nhọn)
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+        ];
+
+        const targetLetters = ['R', 'A', 'N', 'Y', 'B'];
+        const noiseLetters = ['W', 'K', 'P', 'U', 'J', 'D', 'E', 'L', 'M', 'V', 'X', 'Z', 'Q', 'S', 'G', 'F'];
+
+        const flatPattern = PATTERN.flat();
+        const totalX = flatPattern.filter(x => x === 1).length;
+        
+        let targetPool = [];
+        while (targetPool.length < totalX) {
+            targetPool.push(...targetLetters);
+        }
+        targetPool = targetPool.slice(0, totalX);
+        targetPool.sort(() => Math.random() - 0.5);
+
+        // Grid tạo 1 lần không bị render lại loạn xạ
+        const initialGrid = flatPattern.map(val => {
+            if (val === 1) return targetPool.pop();
+            return noiseLetters[Math.floor(Math.random() * noiseLetters.length)];
+        });
+
+        const legend = [
+            { letter: 'R', color: 'bg-yellow-400', label: 'R-Vàng' },
+            { letter: 'A', color: 'bg-red-600', label: 'A-Đỏ' },
+            { letter: 'N', color: 'bg-green-700', label: 'N-Xanh lá' },
+            { letter: 'Y', color: 'bg-orange-500', label: 'Y-Cam' },
+            { letter: 'B', color: 'bg-cyan-500', label: 'B-Lục lam' }
+        ];
+
+        const App = () => {
+            const [answers, setAnswers] = React.useState({});
+            const [lastMessage, setLastMessage] = React.useState(null);
+            
+            const [timeLeft, setTimeLeft] = React.useState(180); // 3 phút
+            const [isFinished, setIsFinished] = React.useState(false);
+
+            // Xử lý đếm ngược
+            React.useEffect(() => {
+                if (timeLeft > 0 && !isFinished) {
+                    const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
+                    return () => clearTimeout(timer);
+                } else if (timeLeft === 0 && !isFinished) {
+                    setIsFinished(true);
+                    setLastMessage("Đã hết thời gian! Bài làm của bạn đã được chốt.");
+                }
+            }, [timeLeft, isFinished]);
+
+            // Tự động kết thúc khi trả lời đủ 5 câu
+            React.useEffect(() => {
+                if (Object.keys(answers).length === questions.length && !isFinished) {
+                    setIsFinished(true);
+                    setLastMessage("Tuyệt vời! Bạn đã hoàn thành bài.");
+                    window.scrollTo({ top: 0, behavior: 'smooth' }); // Trượt lên để khoe ma trận
+                }
+            }, [answers, isFinished]);
+
+            const handleSelect = (qId, label, isCorrect, targetLetter) => {
+                // CHỈ CHO PHÉP CHỌN 1 LẦN VÀ KHÔNG CHỌN KHI ĐÃ HẾT GIỜ
+                if (isFinished || answers[qId]) return;
+
+                setAnswers(prev => ({ ...prev, [qId]: label }));
+                if (isCorrect) {
+                    setLastMessage(`Đúng rồi! Các ô chữ ${targetLetter} đã sáng lên.`);
+                } else {
+                    setLastMessage("Rất tiếc! Lựa chọn này chưa chính xác.");
+                }
+            };
+
+            const score = questions.filter(q => {
+                const selected = answers[q.id];
+                const correct = q.options.find(o => o.isCorrect).label;
+                return selected === correct;
+            }).length;
+
+            const correctLetters = questions
+                .filter(q => answers[q.id] === q.options.find(o => o.isCorrect).label)
+                .map(q => q.targetLetter);
+
+            const formatTime = (seconds) => {
+                const m = Math.floor(seconds / 60);
+                const s = seconds % 60;
+                return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+            };
+
+            return (
+                <div className="max-w-7xl mx-auto print-container flex flex-col lg:flex-row gap-6 lg:items-start">
+                    
+                    {/* CỘT TRÁI: MA TRẬN SẮC MÀU */}
+                    <div className="w-full lg:w-5/12 print-col lg:sticky lg:top-4 z-10">
+                        <div className={`bg-[#fffdf8] rounded-2xl border-4 ${isFinished && score === 5 ? 'border-green-400' : 'border-amber-100'} p-4 sm:p-6 shadow-xl relative transition-colors duration-500`}>
+                            {isFinished && score === 5 && (
+                                <div className="absolute -top-3 -right-3 bg-green-500 text-white font-bold px-4 py-1 rounded-full shadow-lg transform rotate-12 z-20">
+                                    Hoàn thành xuất sắc!
+                                </div>
+                            )}
+
+                            {/* Header Phiếu học tập */}
+                            <div className="text-center mb-4">
+                                <h2 className="text-2xl font-black text-red-600 uppercase mb-4 tracking-wide">MA TRẬN SẮC MÀU</h2>
+                                
+                                <div className="flex flex-wrap items-center gap-3 mb-3">
+                                    <span className="text-pink-500 text-xl">🌸</span>
+                                    <span className="font-bold text-red-600 whitespace-nowrap">Họ và tên:</span>
+                                    <input type="text" className="border-b-2 border-pink-200 outline-none flex-1 bg-transparent px-2 text-blue-800 font-bold min-w-[150px]" />
+                                    <span className="font-bold text-yellow-500 text-xl ml-2">⭐</span>
+                                    <span className="font-bold text-blue-600 whitespace-nowrap">Lớp:</span>
+                                    <input type="text" className="border-b-2 border-blue-200 outline-none w-24 bg-transparent px-2 text-blue-800 font-bold text-center" />
+                                </div>
+
+                                <div className="border border-dashed border-orange-300 p-2 rounded-lg bg-white/50 flex items-center gap-2">
+                                    <span className="font-bold text-orange-600 whitespace-nowrap">Thông điệp:</span>
+                                    <input type="text" defaultValue="CHINH PHỤC HÓA HỌC 11" className="flex-1 bg-transparent outline-none text-center font-bold text-red-500 sm:text-lg border-b border-transparent focus:border-orange-200 transition-colors" />
+                                </div>
+                            </div>
+
+                            {/* Ma trận Grid */}
+                            <h3 className="text-center font-bold text-blue-800 mb-3 text-sm sm:text-base">BẢNG MẬT MÃ - TÔ MÀU ĐÁP ÁN ĐÚNG</h3>
+                            
+                            <div style={{ gridTemplateColumns: `repeat(${PATTERN[0].length}, minmax(0, 1fr))` }} className="grid gap-[2px] md:gap-1 bg-gray-300 border-4 border-double border-yellow-400 p-1 mb-5 rounded-lg relative overflow-hidden">
+                                {initialGrid.map((letter, index) => {
+                                    const isRevealed = correctLetters.includes(letter);
+                                    const targetQ = questions.find(q => q.targetLetter === letter);
+                                    
+                                    const isDimmed = isFinished && (!isRevealed || !targetQ);
+
+                                    let cellClass = "bg-white text-gray-400";
+                                    if (isRevealed && targetQ) {
+                                        cellClass = `${targetQ.colorClass} ${targetQ.colorClass.includes('yellow') || targetQ.colorClass.includes('cyan') ? 'text-black' : 'text-white'} transform scale-105 z-10`;
+                                    }
+                                    if (isDimmed) cellClass += " opacity-40";
+
+                                    return (
+                                        <div key={index} className={`aspect-square flex items-center justify-center font-bold text-[10px] sm:text-xs transition-all duration-700 ${cellClass}`}>
+                                            {letter}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+
+                            {/* Chú giải màu sắc */}
+                            <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 text-[11px] sm:text-xs font-bold text-gray-700">
+                                {legend.map((item, idx) => (
+                                    <div key={idx} className="flex items-center gap-1.5">
+                                        <div className={`w-3 h-3 rounded-full ${item.color} shadow-sm border border-black/10`}></div>
+                                        <span>{item.label}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* CỘT PHẢI: DANH SÁCH CÂU HỎI */}
+                    <div className="w-full lg:w-7/12 print-col flex flex-col">
+                        <div className="bg-[#f8fbff] rounded-2xl border-4 border-blue-100 p-4 sm:p-6 shadow-xl flex-1 flex flex-col max-h-[75vh] lg:h-[calc(100vh-2rem)] lg:max-h-[850px]">
+                            
+                            <div className="flex flex-wrap justify-between items-center gap-4 mb-6 bg-blue-50/50 p-3 rounded-xl border border-blue-200">
+                                <h1 className="text-lg sm:text-xl font-bold text-blue-800 uppercase tracking-tight">CÂU HỎI (5 CÂU)</h1>
+                                <div className="flex flex-wrap items-center justify-end gap-2 sm:gap-3 flex-1">
+                                    <div className={`px-4 py-1.5 rounded-full font-bold shadow-md text-sm sm:text-base border ${timeLeft <= 30 && !isFinished ? 'bg-red-500 text-white animate-pulse border-red-600' : 'bg-white text-blue-800 border-blue-200'}`}>
+                                        ⏱ {formatTime(timeLeft)}
+                                    </div>
+                                    <div className="bg-blue-600 text-white px-5 py-1.5 rounded-full font-bold shadow-md text-sm sm:text-base">
+                                        {score}/5 điểm
+                                    </div>
+                                </div>
+                            </div>
+
+                            {isFinished && (
+                                <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4 text-center">
+                                    <strong className="font-bold">Đã chốt bài! </strong>
+                                    <span className="block sm:inline">Cảm ơn bạn đã tham gia thử thách.</span>
+                                </div>
+                            )}
+
+                            {/* Danh sách câu hỏi cuộn */}
+                            <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-6">
+                                {questions.map((q, idx) => {
+                                    const hasAnswered = !!answers[q.id];
+                                    
+                                    return (
+                                        <div key={q.id} className="pb-5 border-b border-blue-100 last:border-0 last:pb-0">
+                                            <p className="font-bold text-gray-800 mb-3 text-sm sm:text-base">Câu {q.id}. {q.text}</p>
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
+                                                {q.options.map(opt => {
+                                                    const isSelected = answers[q.id] === opt.label;
+                                                    const isCorrectSelection = isSelected && opt.isCorrect;
+                                                    const isWrongSelection = isSelected && !opt.isCorrect;
+
+                                                    let baseClass = "flex-1 flex items-center border-2 rounded-xl p-2 transition-all duration-300 ";
+                                                    let circleClass = "w-7 h-7 shrink-0 flex items-center justify-center rounded-full font-bold text-sm mr-2 shadow-sm transition-colors duration-300 ";
+                                                    
+                                                    // Styling logic 
+                                                    if (isCorrectSelection) {
+                                                        baseClass += "bg-green-500 border-green-600 text-white shadow-md cursor-default";
+                                                        circleClass += "bg-white text-green-600";
+                                                    } else if (isWrongSelection) {
+                                                        baseClass += "bg-red-50 border-red-500 shadow-sm text-red-700 cursor-default";
+                                                        circleClass += "bg-red-500 text-white";
+                                                    } else {
+                                                        baseClass += "bg-white border-gray-200 text-gray-700";
+                                                        circleClass += "bg-blue-50 text-blue-600 border border-blue-100";
+                                                        if (!hasAnswered && !isFinished) {
+                                                            baseClass += " hover:border-blue-400 hover:bg-blue-50 cursor-pointer";
+                                                        } else {
+                                                            baseClass += " opacity-60 cursor-default";
+                                                        }
+                                                    }
+
+                                                    return (
+                                                        <div key={opt.label} onClick={() => handleSelect(q.id, opt.label, opt.isCorrect, q.targetLetter)} className={baseClass}>
+                                                            <div className={circleClass}>{opt.label}</div>
+                                                            <span className="font-medium text-xs sm:text-sm pr-2 leading-tight">{opt.text}</span>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    )
+                                })}
+                            </div>
+
+                            {!isFinished && lastMessage && (
+                                <div className="min-h-[2rem] mt-4 no-print">
+                                    <p className="text-center text-blue-600 font-bold animate-pulse text-sm sm:text-base">
+                                        ✨ {lastMessage}
+                                    </p>
+                                </div>
+                            )}
+
+                            {/* Chỉ hiện nút IN KẾT QUẢ */}
+                            <div className="flex justify-center mt-4 pt-4 border-t border-blue-100 no-print">
+                                <button onClick={() => window.print()} className="w-full sm:w-1/2 bg-blue-500 text-white py-2.5 sm:py-3 rounded-full font-bold hover:bg-blue-600 transition shadow-lg text-xs sm:text-sm">
+                                    IN KẾT QUẢ PDF
+                                </button>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
